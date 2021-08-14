@@ -366,6 +366,7 @@ override CROSS_COMPILE	:= /home/FlowerSea/arm64-gcc/bin/aarch64-elf-
 override CROSS_COMPILE_ARM32	:= /home/FlowerSea/arm32-gcc/bin/arm-eabi-
 override LLVM := 1
 override CLANG_TRIPLE := aarch64-linux-gnu
+override LLVM_PATH := /home/FlowerSea/prelude-clang/bin/
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
