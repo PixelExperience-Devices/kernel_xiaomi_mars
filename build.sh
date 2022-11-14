@@ -1,6 +1,6 @@
 DATE=$(date +"%Y%m%d")
 VERSION=$(git rev-parse --short HEAD)
-KERNEL_NAME=Evasi0nKernel-mars-"$DATE"
+KERNEL_NAME=Flower_Mars_v1.01-"$DATE"
 
 export KERNEL_PATH=$PWD
 export ANYKERNEL_PATH=~/Anykernel3
