@@ -4,14 +4,14 @@ KERNEL_NAME=Flower_Mars_v1.01-"$DATE"
 
 export KERNEL_PATH=$PWD
 export ANYKERNEL_PATH=~/Anykernel3
-export CLANG_PATH=~/proton-clang
+export CLANG_PATH=~/prelude-clang
 export PATH=${CLANG_PATH}/bin:${PATH}
 export CLANG_TRIPLE=aarch64-linux-gnu-
 export ARCH=arm64
 export SUBARCH=arm64
 
 echo "===================Setup Environment==================="
-git clone --depth=1 https://github.com/kdrag0n/proton-clang $CLANG_PATH
+git clone --depth=1 https://gitlab.com/jjpprrrr/prelude-clang $CLANG_PATH
 git clone https://github.com/osm0sis/AnyKernel3 $ANYKERNEL_PATH
 sh -c "$(curl -sSL https://github.com/akhilnarang/scripts/raw/master/setup/android_build_env.sh/)"
 
