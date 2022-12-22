@@ -12,7 +12,7 @@ export SUBARCH=arm64
 
 echo "===================Setup Environment==================="
 git clone --depth=1 https://gitlab.com/jjpprrrr/prelude-clang $CLANG_PATH
-git clone https://github.com/osm0sis/AnyKernel3 $ANYKERNEL_PATH
+git clone https://github.com/FlowerSea0208/AnyKernel3 $ANYKERNEL_PATH
 
 echo "=========================Clean========================="
 rm -rf $KERNEL_PATH/out/ *.zip
