@@ -1825,6 +1825,7 @@ CONFIG_MI_HARDWARE_ID=m
 # CONFIG_MISC_RTSX_PCI is not set
 # CONFIG_MISC_RTSX_USB is not set
 # CONFIG_HABANA_AI is not set
+# CONFIG_ISPV2_AL6021 is not set
 # end of Misc devices
 
 #
