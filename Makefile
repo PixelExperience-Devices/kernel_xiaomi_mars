@@ -361,12 +361,7 @@ include scripts/subarch.include
 # Alternatively CROSS_COMPILE can be set in the environment.
 # Default value for CROSS_COMPILE is not to prefix executables
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
-override ARCH		:= arm64
-override CROSS_COMPILE	:= /home/FlowerSea/arm64-gcc/bin/aarch64-elf-
-override CROSS_COMPILE_ARM32	:= /home/FlowerSea/arm32-gcc/bin/arm-eabi-
-override LLVM := 1
-override CLANG_TRIPLE := aarch64-linux-gnu
-override LLVM_PATH := /home/FlowerSea/prelude-clang/bin/
+ARCH		?= $(SUBARCH)
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
@@ -404,8 +399,8 @@ HOST_LFS_LDFLAGS := $(shell getconf LFS_LDFLAGS 2>/dev/null)
 HOST_LFS_LIBS := $(shell getconf LFS_LIBS 2>/dev/null)
 
 ifneq ($(LLVM),)
-HOSTCC	= $(LLVM_PATH)clang
-HOSTCXX	= $(LLVM_PATH)clang++
+HOSTCC	= clang
+HOSTCXX	= clang++
 else
 HOSTCC	= gcc
 HOSTCXX	= g++
@@ -420,15 +415,15 @@ KBUILD_HOSTLDLIBS   := $(HOST_LFS_LIBS) $(HOSTLDLIBS)
 # Make variables (CC, etc...)
 CPP		= $(CC) -E
 ifneq ($(LLVM),)
-CC	= $(LLVM_PATH)clang
-LD		= $(LLVM_PATH)ld.lld
-AR		= $(LLVM_PATH)llvm-ar
-NM		= $(LLVM_PATH)llvm-nm
-OBJCOPY		= $(LLVM_PATH)llvm-objcopy
-OBJDUMP		= $(LLVM_PATH)llvm-objdump
-READELF		= $(LLVM_PATH)llvm-readelf
-OBJSIZE		= $(LLVM_PATH)llvm-size
-STRIP		= $(LLVM_PATH)llvm-strip
+CC	= clang
+LD		= ld.lld
+AR		= llvm-ar
+NM		= llvm-nm
+OBJCOPY		= llvm-objcopy
+OBJDUMP		= llvm-objdump
+READELF		= llvm-readelf
+OBJSIZE		= llvm-size
+STRIP		= llvm-strip
 else
 CC		= $(CROSS_COMPILE)gcc
 LD		= $(CROSS_COMPILE)ld
@@ -451,7 +446,7 @@ PYTHON		= python
 PYTHON3		= python3
 CHECK		= sparse
 BASH		= bash
-KGZIP		= pigz
+KGZIP		= gzip
 KBZIP2		= bzip2
 KLZOP		= lzop
 LZMA		= lzma
@@ -686,8 +681,8 @@ export RETPOLINE_VDSO_CFLAGS
 ifdef CONFIG_LTO_CLANG
 # LTO produces LLVM IR instead of object files. Use llvm-ar and llvm-nm, so we
 # can process these.
-AR		:= $(LLVM_PATH)llvm-ar
-LLVM_NM		:= $(LLVM_PATH)llvm-nm
+AR		:= llvm-ar
+LLVM_NM		:= llvm-nm
 export LLVM_NM
 # Set O3 optimization level for LTO
 LDFLAGS		+= --plugin-opt=O3
