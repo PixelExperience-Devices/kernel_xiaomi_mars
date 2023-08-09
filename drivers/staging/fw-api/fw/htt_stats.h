@@ -538,6 +538,23 @@ enum htt_dbg_ext_stats_type {
      */
     HTT_DBG_MLO_UMAC_SSR_STATS = 56,
 
+    /** HTT_DBG_PDEV_TDMA_STATS
+     * PARAMS:
+     *    - No Params
+     * RESP MSG:
+     *    - htt_pdev_tdma_stats_tlv
+     */
+    HTT_DBG_PDEV_TDMA_STATS = 57,
+
+    /** HTT_DBG_CODEL_STATS
+     * PARAMS:
+     *    - No Params
+     * RESP MSG:
+     *    - htt_codel_svc_class_stats_tlv
+     *    - htt_codel_msduq_stats_tlv
+     */
+    HTT_DBG_CODEL_STATS = 58,
+
 
     /* keep this last */
     HTT_DBG_NUM_EXT_STATS = 256,
@@ -6578,14 +6595,25 @@ typedef struct {
     A_UINT32 cv_buf_received;
     /** total times CV bufs fed back to the IPC ring */
     A_UINT32 cv_buf_fed_back;
-    /* Total times CV query happened for IBF case */
+    /** Total times CV query happened for IBF case */
     A_UINT32 cv_total_query_ibf;
-    /* A valid CV has been found for IBF case */
+    /** A valid CV has been found for IBF case */
     A_UINT32 cv_found_ibf;
-    /* A valid CV has not been found for IBF case */
+    /** A valid CV has not been found for IBF case */
     A_UINT32 cv_not_found_ibf;
-    /* Expired CV found during query for IBF case */
+    /** Expired CV found during query for IBF case */
     A_UINT32 cv_expired_during_query_ibf;
+    /** Total number of times adaptive sounding logic has been queried */
+    A_UINT32 adaptive_snd_total_query;
+    /**
+     * Total number of times adaptive sounding mcs drop has been computed
+     * and recorded.
+     */
+    A_UINT32 adaptive_snd_total_mcs_drop[HTT_TX_PDEV_STATS_NUM_MCS_COUNTERS + HTT_TX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+    /** Total number of times adaptive sounding logic kicked in */
+    A_UINT32 adaptive_snd_kicked_in;
+    /** Total number of times we switched back to normal sounding interval */
+    A_UINT32 adaptive_snd_back_to_default;
 } htt_tx_sounding_stats_tlv;
 
 /* STATS_TYPE : HTT_DBG_EXT_STATS_TX_SOUNDING_INFO
@@ -8749,6 +8777,44 @@ typedef struct {
     A_UINT32 ul_mumimo_trigger_within_bss;
 } htt_pdev_mbssid_ctrl_frame_stats_tlv;
 
+typedef struct {
+    htt_tlv_hdr_t tlv_hdr;
+    /**
+     * BIT [ 7 :  0]   :- mac_id
+     *                    Use the HTT_STATS_TDMA_MAC_ID_GET macro to extract
+     *                    this bitfield.
+     * BIT [31 :  8]   :- reserved
+     */
+    union {
+        struct {
+            A_UINT32 mac_id:    8,
+                     reserved: 24;
+        };
+        A_UINT32 mac_id__word;
+    };
+
+    /** Num of Active TDMA schedules */
+    A_UINT32 num_tdma_active_schedules;
+    /** Num of Reserved TDMA schedules */
+    A_UINT32 num_tdma_reserved_schedules;
+    /** Num of Restricted TDMA schedules */
+    A_UINT32 num_tdma_restricted_schedules;
+    /** Num of Unconfigured TDMA schedules */
+    A_UINT32 num_tdma_unconfigured_schedules;
+    /** Num of TDMA slot switches */
+    A_UINT32 num_tdma_slot_switches;
+    /** Num of TDMA EDCA switches */
+    A_UINT32 num_tdma_edca_switches;
+} htt_pdev_tdma_stats_tlv;
+
+#define HTT_STATS_TDMA_MAC_ID_M 0x000000ff
+#define HTT_STATS_TDMA_MAC_ID_S 0
+
+#define HTT_STATS_TDMA_MAC_ID_GET(_var) \
+    (((_var) & HTT_STATS_TDMA_MAC_ID_M) >> \
+     HTT_STATS_TDMA_MAC_ID_S)
+
+
 /*======= Bandwidth Manager stats ====================*/
 
 #define HTT_BW_MGR_STATS_MAC_ID_M               0x000000ff
@@ -9493,5 +9559,92 @@ typedef struct {
     htt_umac_ssr_stats_t stats;
 } htt_umac_ssr_stats_tlv;
 
+typedef struct {
+    htt_tlv_hdr_t tlv_hdr;
+    A_UINT32 svc_class_id;
+    /* codel_drops:
+     * How many times have MSDU queues belonging to this service class
+     * dropped their head MSDU due to the queue's latency being above
+     * the CoDel latency limit specified for the service class throughout
+     * the full CoDel latency statistics collection window.
+     */
+    A_UINT32 codel_drops;
+    /* codel_no_drops:
+     * How many times have MSDU queues belonging to this service class
+     * completed a CoDel latency statistics collection window and
+     * concluded that no head MSDU drop is needed, due to the MSDU queue's
+     * latency being under the limit specified for the service class at
+     * some point during the window.
+     */
+    A_UINT32 codel_no_drops;
+} htt_codel_svc_class_stats_tlv;
+
+#define HTT_CODEL_MSDUQ_STATS_TX_FLOW_NUM_M 0x0000FFFF
+#define HTT_CODEL_MSDUQ_STATS_TX_FLOW_NUM_S 0
+
+#define HTT_CODEL_MSDUQ_STATS_TX_FLOW_NUM_GET(_var) \
+    (((_var) & HTT_CODEL_MSDUQ_STATS_TX_FLOW_NUM_M) >> \
+     HTT_CODEL_MSDUQ_STATS_TX_FLOW_NUM_S)
+#define HTT_CODEL_MSDUQ_STATS_TX_FLOW_NUM_SET(_var, _val) \
+    do { \
+        HTT_CHECK_SET_VAL(HTT_CODEL_MSDUQ_STATS_TX_FLOW_NUM, _val); \
+        ((_var) |= ((_val) << HTT_CODEL_MSDUQ_STATS_TX_FLOW_NUM_S)); \
+    } while (0)
+
+#define HTT_CODEL_MSDUQ_STATS_SVC_CLASS_ID_M 0x00FF0000
+#define HTT_CODEL_MSDUQ_STATS_SVC_CLASS_ID_S 16
+
+#define HTT_CODEL_MSDUQ_STATS_SVC_CLASS_ID_GET(_var) \
+    (((_var) & HTT_CODEL_MSDUQ_STATS_SVC_CLASS_ID_M) >> \
+     HTT_CODEL_MSDUQ_STATS_SVC_CLASS_ID_S)
+#define HTT_CODEL_MSDUQ_STATS_SVC_CLASS_ID_SET(_var, _val) \
+    do { \
+        HTT_CHECK_SET_VAL(HTT_CODEL_MSDUQ_STATS_SVC_CLASS_ID, _val); \
+        ((_var) |= ((_val) << HTT_CODEL_MSDUQ_STATS_SVC_CLASS_ID_S)); \
+    } while (0)
+
+#define HTT_CODEL_MSDUQ_STATS_DROPS_M 0x0000FFFF
+#define HTT_CODEL_MSDUQ_STATS_DROPS_S 0
+
+#define HTT_CODEL_MSDUQ_STATS_DROPS_GET(_var) \
+    (((_var) & HTT_CODEL_MSDUQ_STATS_DROPS_M) >> \
+     HTT_CODEL_MSDUQ_STATS_DROPS_S)
+#define HTT_CODEL_MSDUQ_STATS_DROPS_SET(_var, _val) \
+    do { \
+        HTT_CHECK_SET_VAL(HTT_CODEL_MSDUQ_STATS_DROPS, _val); \
+        ((_var) |= ((_val) << HTT_CODEL_MSDUQ_STATS_DROPS_S)); \
+    } while (0)
+
+#define HTT_CODEL_MSDUQ_STATS_NO_DROPS_M 0xFFFF0000
+#define HTT_CODEL_MSDUQ_STATS_NO_DROPS_S 16
+
+#define HTT_CODEL_MSDUQ_STATS_NO_DROPS_GET(_var) \
+    (((_var) & HTT_CODEL_MSDUQ_STATS_NO_DROPS_M) >> \
+     HTT_CODEL_MSDUQ_STATS_NO_DROPS_S)
+#define HTT_CODEL_MSDUQ_STATS_NO_DROPS_SET(_var, _val) \
+    do { \
+        HTT_CHECK_SET_VAL(HTT_CODEL_MSDUQ_STATS_NO_DROPS, _val); \
+        ((_var) |= ((_val) << HTT_CODEL_MSDUQ_STATS_NO_DROPS_S)); \
+    } while (0)
+
+typedef struct {
+    htt_tlv_hdr_t tlv_hdr;
+    union {
+        A_UINT32 id__word;
+        struct {
+            A_UINT32 tx_flow_num: 16, /* FW's MSDU queue ID */
+                     svc_class_id: 8,
+                     reserved: 8;
+        };
+    };
+    union {
+        A_UINT32 stats__word;
+        struct {
+            A_UINT32
+                codel_drops: 16,
+                codel_no_drops: 16;
+        };
+    };
+} htt_codel_msduq_stats_tlv;
 
 #endif /* __HTT_STATS_H__ */
